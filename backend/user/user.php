@@ -3,65 +3,61 @@ session_start();
 include '../Conexiones/conexion.php';
 include '../utils/verificar_rol.php';
 
-// Detectar método HTTP
+// Detectar método
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents("php://input"), true);
 
-// Si se está simulando un método (desde un formulario o fetch con POST)
+// Simulación de métodos con _method (POST simulado)
 $overrideMethod = $_POST['_method'] ?? null;
 if ($method === 'POST' && $overrideMethod) {
-    $method = strtoupper($overrideMethod); // "PUT", "DELETE"
+    $method = strtoupper($overrideMethod);
     $input = $_POST;
 }
 
 switch ($method) {
 
-    // 📄 Obtener todos los eventos o uno por ID
     case 'GET':
+        verificarRol('admin');
+
         if (isset($_GET['id'])) {
             $id = intval($_GET['id']);
-            $sql = "SELECT * FROM eventos WHERE id = $id";
+            $sql = "SELECT id, nombre, email, rol FROM usuarios WHERE id = $id";
             $res = mysqli_query($conn, $sql);
             echo json_encode(mysqli_fetch_assoc($res));
         } else {
-            $sql = "SELECT * FROM eventos";
+            $sql = "SELECT id, nombre, email, rol FROM usuarios";
             $res = mysqli_query($conn, $sql);
-            $eventos = [];
+            $usuarios = [];
             while ($row = mysqli_fetch_assoc($res)) {
-                $eventos[] = $row;
+                $usuarios[] = $row;
             }
-            echo json_encode($eventos);
+            echo json_encode($usuarios);
         }
         break;
 
-    // ➕ Crear evento
     case 'POST':
-        verificarRol('profesor');
+        $nombre = $_POST['nombre'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
 
-        $titulo = $_POST['titulo'] ?? '';
-        $descripcion = $_POST['descripcion'] ?? '';
-        $fecha = $_POST['fecha'] ?? '';
-        $creado_por = $_SESSION['idUsuario'];
-
-        if (!$titulo || !$fecha) {
-            echo json_encode(["error" => "Faltan campos obligatorios"]);
+        if (!$nombre || !$email || !$password) {
+            echo json_encode(["error" => "Faltan campos"]);
             exit;
         }
 
-        $sql = "INSERT INTO eventos (titulo, descripcion, fecha, creado_por)
-                VALUES ('$titulo', '$descripcion', '$fecha', $creado_por)";
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "INSERT INTO usuarios (nombre, email, password) VALUES ('$nombre', '$email', '$hash')";
 
         if (mysqli_query($conn, $sql)) {
-            echo json_encode(["mensaje" => "Evento creado"]);
+            echo json_encode(["mensaje" => "Usuario registrado"]);
         } else {
             http_response_code(500);
             echo json_encode(["error" => mysqli_error($conn)]);
         }
         break;
 
-    // ✏️ Actualizar evento
     case 'PUT':
-        verificarRol('profesor');
+        verificarRol('admin');
 
         $id = $input['id'] ?? null;
         if (!$id) {
@@ -69,27 +65,32 @@ switch ($method) {
             break;
         }
 
-        $titulo = $input['titulo'] ?? '';
-        $descripcion = $input['descripcion'] ?? '';
-        $fecha = $input['fecha'] ?? '';
+        $nombre = $input['nombre'] ?? null;
+        $email = $input['email'] ?? null;
+        $rol = $input['rol'] ?? null;
 
-        $sql = "UPDATE eventos SET 
-                  titulo = '$titulo', 
-                  descripcion = '$descripcion', 
-                  fecha = '$fecha' 
-                WHERE id = $id";
+        $set = [];
+        if ($nombre) $set[] = "nombre = '$nombre'";
+        if ($email) $set[] = "email = '$email'";
+        if ($rol)   $set[] = "rol = '$rol'";
+
+        if (empty($set)) {
+            echo json_encode(["error" => "Nada que actualizar"]);
+            break;
+        }
+
+        $sql = "UPDATE usuarios SET " . implode(', ', $set) . " WHERE id = $id";
 
         if (mysqli_query($conn, $sql)) {
-            echo json_encode(["mensaje" => "Evento actualizado"]);
+            echo json_encode(["mensaje" => "Usuario actualizado"]);
         } else {
             http_response_code(500);
             echo json_encode(["error" => mysqli_error($conn)]);
         }
         break;
 
-    // ❌ Eliminar evento
     case 'DELETE':
-        verificarRol('profesor');
+        verificarRol('admin');
 
         $id = $input['id'] ?? null;
         if (!$id) {
@@ -97,10 +98,10 @@ switch ($method) {
             break;
         }
 
-        $sql = "DELETE FROM eventos WHERE id = $id";
+        $sql = "DELETE FROM usuarios WHERE id = $id";
 
         if (mysqli_query($conn, $sql)) {
-            echo json_encode(["mensaje" => "Evento eliminado"]);
+            echo json_encode(["mensaje" => "Usuario eliminado"]);
         } else {
             http_response_code(500);
             echo json_encode(["error" => mysqli_error($conn)]);
