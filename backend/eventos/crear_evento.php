@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 include '../Conexiones/conexion.php';
 include '../utils/verificar_rol.php';
 
@@ -7,12 +8,21 @@ include '../utils/verificar_rol.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents("php://input"), true);
 
+include '../conexion/conexion.php';
+
+if (!isset($_SESSION['rol']) || !in_array($_SESSION['rol'], ['profesor', 'admin'])) {
+    http_response_code(403);
+    exit('No autorizado');
+}
+
+
 // Si se está simulando un método (desde un formulario o fetch con POST)
 $overrideMethod = $_POST['_method'] ?? null;
 if ($method === 'POST' && $overrideMethod) {
     $method = strtoupper($overrideMethod); // "PUT", "DELETE"
     $input = $_POST;
 }
+
 
 switch ($method) {
 

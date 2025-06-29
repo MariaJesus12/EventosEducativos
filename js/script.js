@@ -1,118 +1,332 @@
 $(document).ready(function() {
-    // Variables de estado
-    let currentRole = 'student'; // 'student' o 'teacher'
-    
-    // Elementos del DOM
-    const roleSwitch = $('#role-switch');
-    const currentRoleLabel = $('#current-role');
-    const studentView = $('#student-view');
-    const teacherView = $('#teacher-view');
-    const studentMenu = $('#student-menu');
-    const teacherMenu = $('#teacher-menu');
-    const addEventBtn = $('#add-event-btn');
-    const addEventModal = new bootstrap.Modal('#addEventModal');
-    const eventDetailsModal = new bootstrap.Modal('#eventDetailsModal');
-    const eventForm = $('#event-form');
-    
-    // Event Listeners
-    roleSwitch.change(toggleRole);
-    addEventBtn.click(() => addEventModal.show());
-    $('#save-event-btn').click(saveEvent);
-    $('#event-modality').change(toggleLocationField);
-    $('.btn-outline-primary').click(showEventDetails);
-    $('#register-event-btn').click(registerForEvent);
-    
-    // Inicialización
-    updateUIForRole();
-    
-    // Funciones
-    function toggleRole() {
-        currentRole = roleSwitch.is(':checked') ? 'teacher' : 'student';
-        updateUIForRole();
+    // Detectar página actual
+    const path = window.location.pathname;
+    let currentPage = '';
+    if (path.includes('admin.html')) currentPage = 'admin';
+    else if (path.includes('profesor.html')) currentPage = 'profesor';
+    else if (path.includes('estudiante.html')) currentPage = 'estudiante';
+    else if (path.includes('index.html')) currentPage = 'index';
+
+    // --- Lógica de login y redirección (solo en index) ---
+    if (currentPage === 'index') {
+        $('#loginForm').submit(function(e) {
+            e.preventDefault();
+            $('#loginError').text('');
+            $.ajax({
+                url: 'backend/auth/login.php',
+                type: 'POST',
+                data: {
+                    email: $('#loginEmail').val(),
+                    password: $('#loginPassword').val()
+                },
+                success: function(response) {
+                    if (response.includes('Login exitoso')) {
+                        $.get('backend/auth/sesion.php', function(data) {
+                            let sesion = {};
+                            try { sesion = JSON.parse(data); } catch {}
+                            if (sesion.logged && sesion.rol) {
+                                if (sesion.rol === 'admin') window.location.href = 'admin.html';
+                                else if (sesion.rol === 'profesor') window.location.href = 'profesor.html';
+                                else window.location.href = 'estudiante.html';
+                            } else {
+                                $('#loginError').text('No se pudo determinar el rol.');
+                            }
+                        });
+                    } else {
+                        $('#loginError').text(response);
+                    }
+                },
+                error: function() {
+                    $('#loginError').text('Error en el servidor.');
+                }
+            });
+        });
     }
-    
-    function updateUIForRole() {
-        if (currentRole === 'teacher') {
-            currentRoleLabel.text('Modo Profesor');
-            studentView.hide();
-            teacherView.show();
-            studentMenu.hide();
-            teacherMenu.show();
-            $('#username').text('Prof. Martínez');
-        } else {
-            currentRoleLabel.text('Modo Estudiante');
-            studentView.show();
-            teacherView.hide();
-            studentMenu.show();
-            teacherMenu.hide();
-            $('#username').text('Est. García');
+
+    // --- Lógica para profesor ---
+    if (currentPage === 'profesor') {
+        function cargarEventos() {
+            $.get('backend/eventos/listar_eventos.php', function(data) {
+                let eventos = [];
+                try { eventos = JSON.parse(data); } catch {}
+                let html = '';
+                eventos.forEach(ev => {
+                    html += `
+                    <tr>
+                        <td>${ev.titulo}</td>
+                        <td>${ev.fecha}</td>
+                        <td>${ev.descripcion}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info ver-inscritos" data-id="${ev.id}">Ver inscritos</button>
+                            <button class="btn btn-sm btn-outline-secondary editar-evento" data-id="${ev.id}">Editar</button>
+                            <button class="btn btn-sm btn-outline-danger eliminar-evento" data-id="${ev.id}">Eliminar</button>
+                        </td>
+                    </tr>`;
+                });
+                $('#eventos-tbody').html(html);
+                $('#eventos-activos').text(eventos.length);
+            });
         }
+        cargarEventos();
+
+        // Abrir modal para nuevo evento
+        $('#add-event-btn').click(function() {
+            $('#eventId').val('');
+            $('#eventTitle').val('');
+            $('#eventDescription').val('');
+            $('#eventDate').val('');
+            $('#eventModalLabel').text('Nuevo Evento');
+            $('#eventModal').modal('show');
+        });
+
+        // Guardar evento (crear o editar)
+        $('#eventForm').submit(function(e) {
+            e.preventDefault();
+            let id = $('#eventId').val();
+            let url = id ? 'backend/eventos/editar_evento.php' : 'backend/eventos/crear_evento.php';
+            $.post(url, {
+                id: id,
+                titulo: $('#eventTitle').val(),
+                descripcion: $('#eventDescription').val(),
+                fecha: $('#eventDate').val()
+            }, function(resp) {
+                alert(resp);
+                $('#eventModal').modal('hide');
+                cargarEventos();
+            });
+        });
+
+        // Editar evento
+        $(document).on('click', '.editar-evento', function() {
+            let id = $(this).data('id');
+            $.get('backend/eventos/listar_eventos.php', function(data) {
+                let eventos = JSON.parse(data);
+                let ev = eventos.find(e => e.id == id);
+                if (ev) {
+                    $('#eventId').val(ev.id);
+                    $('#eventTitle').val(ev.titulo);
+                    $('#eventDescription').val(ev.descripcion);
+                    $('#eventDate').val(ev.fecha);
+                    $('#eventModalLabel').text('Editar Evento');
+                    $('#eventModal').modal('show');
+                }
+            });
+        });
+
+        // Eliminar evento
+        $(document).on('click', '.eliminar-evento', function() {
+            if (confirm('¿Seguro que deseas eliminar este evento?')) {
+                let id = $(this).data('id');
+                $.post('backend/eventos/eliminar_evento.php', {id: id}, function(resp) {
+                    alert(resp);
+                    cargarEventos();
+                });
+            }
+        });
     }
-    
-    function toggleLocationField() {
-        const modality = $('#event-modality').val();
-        const locationField = $('#location-field');
-        
-        if (modality === 'Presencial') {
-            locationField.find('label').text('Lugar');
-            $('#event-location').attr('placeholder', 'Ej: Aula 201, Edificio Principal');
-        } else if (modality === 'Virtual') {
-            locationField.find('label').text('Enlace');
-            $('#event-location').attr('placeholder', 'Ej: https://meet.google.com/abc-xyz-123');
-        } else {
-            locationField.find('label').text('Lugar / Enlace');
-            $('#event-location').attr('placeholder', 'Especifique lugar físico y enlace virtual');
+
+    // --- Lógica para admin ---
+    if (currentPage === 'admin') {
+        function cargarEventos() {
+            $.get('backend/eventos/listar_eventos.php', function(data) {
+                let eventos = [];
+                try { eventos = JSON.parse(data); } catch {}
+                let html = '';
+                eventos.forEach(ev => {
+                    html += `
+                    <tr>
+                      <td>${ev.creado_por_nombre || ''}</td>
+                        <td>${ev.titulo}</td>
+                        <td>${ev.fecha}</td>
+                        <td>${ev.descripcion}</td>
+                      
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary editar-evento" data-id="${ev.id}">Editar</button>
+                            <button class="btn btn-sm btn-outline-danger eliminar-evento" data-id="${ev.id}">Eliminar</button>
+                        </td>
+                    </tr>`;
+                });
+                $('#eventos-tbody').html(html);
+                // Actualizar el contador de eventos activos si lo tienes
+                $('#eventos-activos').text(eventos.length);
+            });
         }
+        cargarEventos();
+
+        // Abrir modal para nuevo evento
+        $('#add-event-btn').click(function() {
+            $('#eventId').val('');
+            $('#eventTitle').val('');
+            $('#eventDescription').val('');
+            $('#eventDate').val('');
+            $('#eventModalLabel').text('Nuevo Evento');
+            $('#eventModal').modal('show');
+        });
+
+        // Guardar evento (crear o editar)
+        $('#eventForm').submit(function(e) {
+            e.preventDefault();
+            let id = $('#eventId').val();
+            let url = id ? 'backend/eventos/editar_evento.php' : 'backend/eventos/crear_evento.php';
+            $.post(url, {
+                id: id,
+                titulo: $('#eventTitle').val(),
+                descripcion: $('#eventDescription').val(),
+                fecha: $('#eventDate').val()
+            }, function(resp) {
+                alert(resp);
+                $('#eventModal').modal('hide');
+                cargarEventos();
+            });
+        });
+
+        // Editar evento
+        $(document).on('click', '.editar-evento', function() {
+            let id = $(this).data('id');
+            $.get('backend/eventos/listar_eventos.php', function(data) {
+                let eventos = JSON.parse(data);
+                let ev = eventos.find(e => e.id == id);
+                if (ev) {
+                    $('#eventId').val(ev.id);
+                    $('#eventTitle').val(ev.titulo);
+                    $('#eventDescription').val(ev.descripcion);
+                    $('#eventDate').val(ev.fecha);
+                    $('#eventModalLabel').text('Editar Evento');
+                    $('#eventModal').modal('show');
+                }
+            });
+        });
+
+        // Eliminar evento
+        $(document).on('click', '.eliminar-evento', function() {
+            if (confirm('¿Seguro que deseas eliminar este evento?')) {
+                let id = $(this).data('id');
+                $.post('backend/eventos/eliminar_evento.php', {id: id}, function(resp) {
+                    alert(resp);
+                    cargarEventos();
+                });
+            }
+        });
     }
-    
-    function saveEvent() {
-        if (eventForm[0].checkValidity()) {
-            // Aquí iría la lógica para guardar el evento
-            alert('Evento guardado exitosamente');
-            addEventModal.hide();
-            eventForm[0].reset();
-        } else {
-            eventForm[0].reportValidity();
+
+    // --- Mostrar eventos para estudiante ---
+    if (currentPage === 'estudiante') {
+        function cargarEventosEstudiante() {
+            // Primero obtenemos los eventos a los que el estudiante está inscrito
+            $.get('backend/eventos/listar_eventos.php', function(data) {
+                let eventos = [];
+                try { eventos = JSON.parse(data); } catch {}
+
+                // Ahora pedimos las inscripciones del estudiante
+                $.get('backend/eventos/mis_inscripciones.php', function(inscData) {
+                    let inscripciones = [];
+                    try { inscripciones = JSON.parse(inscData); } catch {}
+
+                    let html = '';
+                    eventos.forEach(ev => {
+                        let inscrito = inscripciones.includes(ev.id);
+                        html += `
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">${ev.titulo}</h5>
+                                    <p class="card-text text-muted"><i class="fas fa-calendar-day me-2"></i>${ev.fecha}</p>
+                                    <p class="card-text">${ev.descripcion}</p>
+                                    <button class="btn btn-sm btn-outline-success inscribirse-btn" data-id="${ev.id}" ${inscrito ? 'disabled' : ''} style="display:${inscrito ? 'none' : 'inline-block'}">Inscribirse</button>
+                                    <button class="btn btn-sm btn-outline-danger desinscribirse-btn" data-id="${ev.id}" style="display:${inscrito ? 'inline-block' : 'none'}">Desinscribirse</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    $('.row').html(html);
+                });
+            });
         }
+        cargarEventosEstudiante();
+
+        // Inscribirse a evento
+        $(document).on('click', '.inscribirse-btn', function() {
+            let id_evento = $(this).data('id');
+            $.post('backend/eventos/inscribirse.php', {id_evento: id_evento}, function(resp) {
+                alert(resp);
+                cargarEventosEstudiante();
+            });
+        });
+
+        // Desinscribirse de evento
+        $(document).on('click', '.desinscribirse-btn', function() {
+            let id_evento = $(this).data('id');
+            $.post('backend/eventos/desinscribirse.php', {id_evento: id_evento}, function(resp) {
+                alert(resp);
+                cargarEventosEstudiante();
+            });
+        });
     }
-    
-    function showEventDetails() {
-        // Datos de ejemplo para el modal de detalles
-        const eventCard = $(this).closest('.card');
-        const eventTitle = eventCard.find('.card-title').text();
-        const eventDate = eventCard.find('.text-muted').text().replace('<i class="fas fa-calendar-day me-2"></i>', '');
-        const eventDescription = eventCard.find('.card-text').not('.text-muted').text();
-        const eventType = eventTitle.includes('Taller') ? 'Taller' : 
-                         eventTitle.includes('Conferencia') ? 'Conferencia' : 'Seminario';
-        const eventModality = eventCard.find('.badge').text();
-        
-        // Llenar el modal con los datos
-        $('#event-detail-title').text(eventTitle);
-        $('#event-detail-date').text(eventDate.split(',')[0]);
-        $('#event-detail-time').text(eventDate.split(',')[1]);
-        $('#event-detail-type').text(eventType);
-        $('#event-detail-modality').text(eventModality);
-        $('#event-detail-location').text(eventModality === 'Presencial' ? 'Aula 301, Edificio Norte' : 'https://meet.google.com/abc-xyz-123');
-        $('#event-detail-description').text(eventDescription);
-        $('#event-detail-image').attr('src', eventCard.find('img').attr('src'));
-        
-        // Mostrar u ocultar botón de registro según el rol
-        if (currentRole === 'student') {
-            $('#register-event-btn').show();
-        } else {
-            $('#register-event-btn').hide();
-        }
-        
-        eventDetailsModal.show();
+
+    // Mostrar nombre en navbar y manejar logout en todas las páginas protegidas
+    if (['admin', 'profesor', 'estudiante'].includes(currentPage)) {
+        $.get('backend/auth/sesion.php', function(data) {
+            let sesion = {};
+            try { sesion = JSON.parse(data); } catch {}
+            if (sesion.logged && sesion.nombre) {
+                $('#navbar-welcome').text('Bienvenido ' + sesion.nombre);
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        $('#logout-btn').click(function() {
+            $.get('backend/auth/logout.php', function() {
+                window.location.href = 'index.html';
+            });
+        });
     }
-    
-    function registerForEvent() {
-        alert('Te has registrado exitosamente para este evento');
-        eventDetailsModal.hide();
-    }
-    
-    // Simular datos para la vista de profesor
-    if (currentRole === 'teacher') {
-        // Aquí iría la lógica para cargar los eventos del profesor
+
+    $(document).on('click', '.ver-inscritos', function() {
+        let id_evento = $(this).data('id');
+        $.get('backend/eventos/inscritos_evento.php', {id_evento: id_evento}, function(data) {
+            let inscritos = [];
+            try { inscritos = JSON.parse(data); } catch {}
+            let html = '';
+            if (inscritos.length === 0) {
+                html = '<li class="list-group-item">Ningún estudiante inscrito.</li>';
+            } else {
+                inscritos.forEach(nombre => {
+                    html += `<li class="list-group-item">${nombre}</li>`;
+                });
+            }
+            $('#inscritos-list').html(html);
+            $('#inscritosModal').modal('show');
+        });
+    });
+
+    // --- Lógica de registro (solo en index) ---
+    if (currentPage === 'index') {
+        $('#registerForm').submit(function(e) {
+            e.preventDefault();
+            $('#registerError').text('');
+            $.ajax({
+                url: 'backend/auth/registro.php',
+                type: 'POST',
+                data: {
+                    nombre: $('#registerNombre').val(),
+                    email: $('#registerEmail').val(),
+                    password: $('#registerPassword').val(),
+                    rol: $('#registerRol').val()
+                },
+                success: function(response) {
+                    if (response.includes('Registro exitoso')) {
+                        alert('Registro exitoso. Ahora puedes iniciar sesión.');
+                        $('#registerModal').modal('hide');
+                        $('#loginModal').modal('show');
+                    } else {
+                        $('#registerError').text(response);
+                    }
+                },
+                error: function() {
+                    $('#registerError').text('Error en el servidor.');
+                }
+            });
+        });
     }
 });
