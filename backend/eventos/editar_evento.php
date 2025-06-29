@@ -7,14 +7,14 @@ if (!isset($_SESSION['rol']) || !in_array($_SESSION['rol'], ['profesor', 'admin'
     exit('No autorizado');
 }
 
+$id = $_POST['id'];
 $titulo = $_POST['titulo'];
 $descripcion = $_POST['descripcion'];
 $fecha = $_POST['fecha'];
-$creado_por = $_SESSION['idUsuario'];
 
-$sql = "INSERT INTO eventos (titulo, descripcion, fecha, creado_por) VALUES ('$titulo', '$descripcion', '$fecha', '$creado_por')";
+$sql = "UPDATE eventos SET titulo='$titulo', descripcion='$descripcion', fecha='$fecha' WHERE id=$id";
 if (mysqli_query($conn, $sql)) {
-    echo "Evento creado con éxito";
+    echo "Evento actualizado";
 } else {
     echo "Error: " . mysqli_error($conn);
 }

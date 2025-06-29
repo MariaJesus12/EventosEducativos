@@ -11,370 +11,106 @@
     <!-- CSS personalizado -->
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Azul oscuro personalizado para el navbar */
-        .bg-dark-blue {
-            background-color: #1a237e !important;
-        }
-        /* Ajuste para que el contenido no quede debajo del navbar fijo */
-        body {
-            padding-top: 70px;
-        }
+        body { background: #f5f6fa; }
+        .welcome-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { max-width: 400px; margin: auto; }
+        .bg-dark-blue { background-color: #1a237e !important; }
     </style>
 </head>
 <body>
-    <!-- Barra de navegación -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-blue fixed-top w-100">
-        <div class="container-fluid">
-            
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="img/logo.png" alt="Logo" height="40" class="d-inline-block align-top">
-                <!-- Botón hamburguesa para abrir el menú lateral -->
-                <button class="btn btn-close-white ms-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-label="Abrir menú">
-                    <i class="fas fa-bars"></i>
+    <div class="welcome-container">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h2 class="mb-3"><i class="fas fa-graduation-cap"></i> Plataforma de Eventos Educativos</h2>
+                <p class="mb-4">
+                    Bienvenido a nuestra plataforma. Aquí podrás gestionar, crear y participar en eventos educativos.<br>
+                   
+                </p>
+                <button class="btn btn-dark-blue w-100 mb-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar sesión
                 </button>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#" id="home-link"><i class="fas fa-home"></i> Inicio</a>
-                    </li>
-                </ul>
-                <div class="d-flex align-items-center">
-                    <div class="form-check form-switch me-3">
-                        <input class="form-check-input" type="checkbox" id="role-switch">
-                        <label class="form-check-label text-white" for="role-switch">
-                            <span id="current-role">Modo Estudiante</span>
-                        </label>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light dropdown-toggle" type="button" id="user-menu" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i>
-                            <span id="username">Usuario</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuración</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Cerrar sesión</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Menú lateral (hamburguesa) -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="sidebarTitle">Menú</h5>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
-        </div>
-        <div class="offcanvas-body">
-            <!-- Contenido del menú cambia según el rol -->
-            <div id="student-menu">
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action active" id="student-events-link">
-                        <i class="fas fa-calendar-alt me-2"></i>Eventos
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action" id="student-my-events-link">
-                        <i class="fas fa-bookmark me-2"></i>Mis Eventos
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action" id="student-schedule-link">
-                        <i class="fas fa-clock me-2"></i>Horario
-                    </a>
-                </div>
-            </div>
-
-            <div id="teacher-menu" style="display: none;">
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action active" id="teacher-dashboard-link">
-                        <i class="fas fa-tachometer-alt me-2"></i>Panel
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action" id="teacher-events-link">
-                        <i class="fas fa-calendar-plus me-2"></i>Gestionar Eventos
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action" id="teacher-attendance-link">
-                        <i class="fas fa-clipboard-list me-2"></i>Asistencias
-                    </a>
-                    <a href="#" class="list-group-item list-group-item-action" id="teacher-reports-link">
-                        <i class="fas fa-chart-bar me-2"></i>Reportes
-                    </a>
+                <div class="text-center mt-3">
+                    <span>¿No tienes cuenta?</span>
+                    <button type="button" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">
+                        Registrarse
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Contenido principal -->
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Contenido dinámico según el rol -->
-            <div class="col-12">
-                <!-- Vista para estudiantes -->
-                <div id="student-view">
-                    <h2 class="mb-4"><i class="fas fa-calendar-alt me-2"></i>Próximos Eventos</h2>
-                    
-                    <div class="row">
-                        <!-- Card de evento -->
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100">
-                                <img src="https://via.placeholder.com/300x150?text=Evento+Educativo" class="card-img-top" alt="Evento">
-                                <div class="card-body">
-                                    <h5 class="card-title">Taller de Programación</h5>
-                                    <p class="card-text text-muted"><i class="fas fa-calendar-day me-2"></i>15 Junio 2023, 14:00 - 16:00</p>
-                                    <p class="card-text">Taller práctico de introducción a JavaScript para principiantes.</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="badge badge-dark-blue">Presencial</span>
-                                        <button class="btn btn-sm btn-outline-dark-blue">Ver detalles</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Card de evento -->
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100">
-                                <img src="https://via.placeholder.com/300x150?text=Conferencia" class="card-img-top" alt="Evento">
-                                <div class="card-body">
-                                    <h5 class="card-title">Conferencia de IA</h5>
-                                    <p class="card-text text-muted"><i class="fas fa-calendar-day me-2"></i>20 Junio 2023, 10:00 - 12:00</p>
-                                    <p class="card-text">Conferencia sobre los últimos avances en Inteligencia Artificial.</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="badge bg-success">Virtual</span>
-                                        <button class="btn btn-sm btn-outline-primary">Ver detalles</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Card de evento -->
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100">
-                                <img src="https://via.placeholder.com/300x150?text=Seminario" class="card-img-top" alt="Evento">
-                                <div class="card-body">
-                                    <h5 class="card-title">Seminario de Investigación</h5>
-                                    <p class="card-text text-muted"><i class="fas fa-calendar-day me-2"></i>25 Junio 2023, 09:00 - 13:00</p>
-                                    <p class="card-text">Presentación de proyectos de investigación de estudiantes avanzados.</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="badge badge-dark-blue">Presencial</span>
-                                        <button class="btn btn-sm btn-outline-dark-blue">Ver detalles</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Vista para profesores -->
-                <div id="teacher-view" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2><i class="fas fa-tachometer-alt me-2"></i>Panel del Profesor</h2>
-                        <button class="btn btn-success" id="add-event-btn">
-                            <i class="fas fa-plus me-2"></i>Nuevo Evento
-                        </button>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <!-- Estadísticas rápidas -->
-                        <div class="col-md-3 mb-3">
-                            <div class="card bg-dark-blue text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">Eventos Activos</h5>
-                                    <p class="card-text display-6">12</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card bg-success text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">Asistencias</h5>
-                                    <p class="card-text display-6">245</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card bg-info text-white">
-                                <div class="card-body">
-                                    <h5 class="card-title">Próximo Evento</h5>
-                                    <p class="card-text">Taller JS - 15 Jun</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card bg-warning text-dark">
-                                <div class="card-body">
-                                    <h5 class="card-title">Por Confirmar</h5>
-                                    <p class="card-text display-6">3</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card mb-4">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Próximos Eventos</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Nombre</th>
-                                            <th>Fecha</th>
-                                            <th>Tipo</th>
-                                            <th>Asistentes</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Taller de Programación</td>
-                                            <td>15 Jun 2023, 14:00</td>
-                                            <td><span class="badge bg-primary">Presencial</span></td>
-                                            <td>25</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary me-2">Ver</button>
-                                                <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Conferencia de IA</td>
-                                            <td>20 Jun 2023, 10:00</td>
-                                            <td><span class="badge bg-success">Virtual</span></td>
-                                            <td>42</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary me-2">Ver</button>
-                                                <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Seminario de Investigación</td>
-                                            <td>25 Jun 2023, 09:00</td>
-                                            <td><span class="badge bg-primary">Presencial</span></td>
-                                            <td>18</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary me-2">Ver</button>
-                                                <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Modal Login -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="loginForm">
+            <div class="modal-header bg-dark-blue text-white">
+              <h5 class="modal-title">Iniciar Sesión</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="loginEmail" class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" id="loginEmail" required>
+              </div>
+              <div class="mb-3">
+                <label for="loginPassword" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="loginPassword" required>
+              </div>
+              <div id="loginError" class="text-danger"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-dark-blue">Entrar</button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
 
-    <!-- Modal para agregar evento (profesor) -->
-    <div class="modal fade" id="addEventModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-dark-blue text-white">
-                    <h5 class="modal-title">Agregar Nuevo Evento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="event-form">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="event-name" class="form-label">Nombre del Evento</label>
-                                <input type="text" class="form-control" id="event-name" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="event-type" class="form-label">Tipo de Evento</label>
-                                <select class="form-select" id="event-type" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="Taller">Taller</option>
-                                    <option value="Conferencia">Conferencia</option>
-                                    <option value="Seminario">Seminario</option>
-                                    <option value="Charla">Charla</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="event-date" class="form-label">Fecha</label>
-                                <input type="date" class="form-control" id="event-date" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="event-start" class="form-label">Hora de inicio</label>
-                                <input type="time" class="form-control" id="event-start" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="event-end" class="form-label">Hora de fin</label>
-                                <input type="time" class="form-control" id="event-end" required>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="event-modality" class="form-label">Modalidad</label>
-                                <select class="form-select" id="event-modality" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="Presencial">Presencial</option>
-                                    <option value="Virtual">Virtual</option>
-                                    <option value="Híbrido">Híbrido</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6" id="location-field">
-                                <label for="event-location" class="form-label">Lugar / Enlace</label>
-                                <input type="text" class="form-control" id="event-location">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="event-description" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="event-description" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="event-image" class="form-label">Imagen del Evento (opcional)</label>
-                            <input class="form-control" type="file" id="event-image" accept="image/*">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-dark-blue" id="save-event-btn">Guardar Evento</button>
-                </div>
+    <!-- Modal Registro -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="registerForm">
+            <div class="modal-header bg-primary text-white">
+              <h5 class="modal-title">Registro</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal para ver detalles del evento -->
-    <div class="modal fade" id="eventDetailsModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="event-detail-title">Detalles del Evento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <img src="" class="img-fluid mb-3" id="event-detail-image" alt="Imagen del evento">
-                    <p><strong>Fecha:</strong> <span id="event-detail-date"></span></p>
-                    <p><strong>Hora:</strong> <span id="event-detail-time"></span></p>
-                    <p><strong>Tipo:</strong> <span id="event-detail-type"></span></p>
-                    <p><strong>Modalidad:</strong> <span id="event-detail-modality"></span></p>
-                    <p><strong>Lugar/Enlace:</strong> <span id="event-detail-location"></span></p>
-                    <hr>
-                    <h6>Descripción:</h6>
-                    <p id="event-detail-description"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" id="register-event-btn">Registrarse</button>
-                </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="registerNombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="registerNombre" required>
+              </div>
+              <div class="mb-3">
+                <label for="registerEmail" class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" id="registerEmail" required>
+              </div>
+              <div class="mb-3">
+                <label for="registerPassword" class="form-label">Contraseña</label>
+                <input type="password" class="form-control" id="registerPassword" required>
+              </div>
+              <div class="mb-3">
+                <label for="registerRol" class="form-label">Rol</label>
+                <select class="form-select" id="registerRol" required>
+                  <option value="estudiante">Estudiante</option>
+                  <option value="profesor">Profesor</option>
+                </select>
+              </div>
+              <div id="registerError" class="text-danger"></div>
             </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Registrarse</button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery (opcional, pero útil para simplificar el código JS) -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- JS personalizado -->
+    <!-- Tu JS principal -->
     <script src="js/script.js"></script>
 </body>
 </html>
